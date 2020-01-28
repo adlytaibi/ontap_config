@@ -8,7 +8,13 @@ This playbook sets up ONTAP two SVMs for multi-protocol access in a minimalist w
 Requirements and steps
 ----------------------
 
-- Install Ansible and NetApp module
+- Speedy way to deploy
+
+```bash
+curl -sSL https://raw.githubusercontent.com/adlytaibi/ontap_config/master/build.sh|bash
+```
+
+- Or step-by-stepInstall Ansible and NetApp module
 
 ```bash
 ssh root@rhel1
