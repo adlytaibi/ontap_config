@@ -40,7 +40,7 @@
       failover_policy: local-only
       firewall_policy: data
       is_auto_revert: true
-      subnet: "{{ svm1.subnet }}"
+      subnet_name: "{{ svm1.subnet }}"
       vserver: "{{ svm1.name }}"
       <<: *login
   - name: change nfs status
@@ -179,7 +179,7 @@
       failover_policy: local-only
       firewall_policy: data
       is_auto_revert: true
-      subnet: "{{ svm2.subnet }}"
+      subnet_name: "{{ svm2.subnet }}"
       vserver: "{{ svm2.name }}"
       <<: *login
   - name: Setup dns for cifs SVM
