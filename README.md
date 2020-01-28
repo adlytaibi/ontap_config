@@ -11,9 +11,11 @@ Requirements and steps
 - Install Ansible and NetApp module
 
 ```bash
-sudo yum install python-pip -y
-pip install ansible
-pip install netapp-lib
+ssh root@rhel1
+yum install python-pip git -y
+pip install ansible netapp-lib
+git clone https://github.com/adlytaibi/ontap_config.git
+cd ontap_config
 ```
 
 - Run playbook
@@ -113,13 +115,11 @@ localhost : ok=27   changed=26   unreachable=0    failed=0    skipped=0    rescu
 - On Linux mount both volumes and test access with both root and user access
 
 ```bash
-mkdir /mnt/cifs
-mkdir /mnt/nfs
+mkdir /mnt/{cifs,nfs}
 mount 192.168.0.140:/nfs /mnt/nfs
 mount 192.168.0.141:/cifs /mnt/cifs
 mkdir /mnt/nfs/user;chown user.user /mnt/nfs/user
 date > /mnt/nfs/root.txt
-date > /mnt/cifs/root.txt
 su - user
 date > /mnt/nfs/user/user.txt
 date > /mnt/cifs/user.txt
@@ -132,6 +132,24 @@ umount /mnt/*
 ```bash
 PS C:\Users\Administrator.DEMO> get-date | out-file \\192.168.0.140\nfs\admin.txt
 PS C:\Users\Administrator.DEMO> get-date | out-file \\192.168.0.141\cifs\admin.txt
+```
+
+- Here is a summary of the files written to both volumes from NFS and CIFS clients
+
+```bash
+tree -p -f -i -u -g /mnt/nfs /mnt/cifs
+
+/mnt/nfs
+[-rwxr-xr-x root     bin     ]  /mnt/nfs/admin.txt
+[-rw-r--r-- root     root    ]  /mnt/nfs/root.txt
+[drwxr-xr-x user     user    ]  /mnt/nfs/user
+[-rw-rw-r-- user     user    ]  /mnt/nfs/user/user.txt
+
+/mnt/cifs
+[-rwxrwxrwx root     bin     ]  /mnt/cifs/admin.txt
+[-rwxrwxrwx user     user    ]  /mnt/cifs/user.txt
+
+1 directory, 5 files
 ```
 
 - Also included a teardown playbook
@@ -171,7 +189,7 @@ localhost : ok=8    changed=8    unreachable=0    failed=0    skipped=0    rescu
 
 ### Note: The computer in Active directory needs to be deleted manually.
 
-- Delete the computers from active directory
+- Delete the computers from active directory, open powershell on AD server or machine with tools.
 
 ```bash
 PS C:\Users\Administrator> remove-adcomputer -identity nfs
