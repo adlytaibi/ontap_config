@@ -123,8 +123,8 @@ localhost : ok=27   changed=26   unreachable=0    failed=0    skipped=0    rescu
 
 ```bash
 mkdir /mnt/{cifs,nfs}
-mount 192.168.0.140:/nfs /mnt/nfs
-mount 192.168.0.141:/cifs /mnt/cifs
+mount 192.168.0.131:/nfs /mnt/nfs
+mount 192.168.0.132:/cifs /mnt/cifs
 mkdir /mnt/nfs/user;chown user.user /mnt/nfs/user
 date > /mnt/nfs/root.txt
 su - user
@@ -137,8 +137,8 @@ umount /mnt/*
 - On Windows test access to both volumes
 
 ```bash
-PS C:\Users\Administrator.DEMO> get-date | out-file \\192.168.0.140\nfs\admin.txt
-PS C:\Users\Administrator.DEMO> get-date | out-file \\192.168.0.141\cifs\admin.txt
+PS C:\Users\Administrator.DEMO> get-date | out-file \\192.168.0.131\nfs\admin.txt
+PS C:\Users\Administrator.DEMO> get-date | out-file \\192.168.0.132\cifs\admin.txt
 ```
 
 - Here is a summary of the files written to both volumes from NFS and CIFS clients
@@ -199,13 +199,13 @@ localhost : ok=8    changed=8    unreachable=0    failed=0    skipped=0    rescu
 - Delete the computers from active directory, open powershell on AD server or machine with tools.
 
 ```bash
-PS C:\Users\Administrator> remove-adcomputer -identity nfs
+PS C:\Users\Administrator> remove-adcomputer nfs
 Confirm
 Are you sure you want to perform this action?
 Performing the operation "Remove" on target "CN=NFS,CN=Computers,DC=demo,DC=netapp,DC=com".
 [Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "Y"):
 
-PS C:\Users\Administrator> remove-adcomputer -identity cifs
+PS C:\Users\Administrator> remove-adcomputer cifs
 Confirm
 Are you sure you want to perform this action?
 Performing the operation "Remove" on target "CN=CIFS,CN=Computers,DC=demo,DC=netapp,DC=com".
