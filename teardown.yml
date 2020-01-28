@@ -1,0 +1,66 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars_files: vars.yml
+  vars:
+    login: &login
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      https: true
+      validate_certs: false
+  name: Multiprotocol SVMs
+  tasks:
+  - name: Delete nfs interface
+    na_ontap_interface:
+      state: absent
+      interface_name: nfs1
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Delete nfs volume
+    na_ontap_volume:
+      state: absent
+      name: nfs
+      wait_for_completion: true
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Delete cifs server
+    na_ontap_cifs_server:
+      state: absent
+      cifs_server_name: "{{ svm1.name }}"
+      admin_user_name: "{{ svm1.adminuser }}"
+      admin_password: "{{ svm1.adminpass }}"
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Delete nfs SVM
+    na_ontap_svm:
+      state: absent
+      name: "{{ svm1.name }}"
+      <<: *login
+
+  - name: Delete cifs interface
+    na_ontap_interface:
+      state: absent
+      interface_name: cifs1
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Delete cifs volume
+    na_ontap_volume:
+      state: absent
+      name: cifs
+      wait_for_completion: true
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Delete cifs server
+    na_ontap_cifs_server:
+      state: absent
+      cifs_server_name: "{{ svm2.name }}"
+      admin_user_name: "{{ svm2.adminuser }}"
+      admin_password: "{{ svm2.adminpass }}"
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Delete cifs SVM
+    na_ontap_svm:
+      state: absent
+      name: "{{ svm2.name }}"
+      <<: *login

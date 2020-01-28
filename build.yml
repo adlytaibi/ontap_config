@@ -1,0 +1,276 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars_files: vars.yml
+  vars:
+    login: &login
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      https: true
+      validate_certs: false
+  name: Multiprotocol SVMs
+  tasks:
+  - name: Create aggregate
+    na_ontap_aggregate:
+      state: present
+      service_state: online
+      name: aggr1
+      disk_count: 5
+      wait_for_online: true
+      <<: *login
+  - name: Create nfs SVM
+    na_ontap_svm:
+      state: present
+      name: "{{ svm1.name }}"
+      root_volume: "{{ svm1.name }}_root"
+      root_volume_aggregate: aggr1
+      root_volume_security_style: unix
+      allowed_protocols: nfs,cifs
+      <<: *login
+  - name: Create nfs interface
+    na_ontap_interface:
+      state: present
+      interface_name: nfs1
+      home_port: "{{ svm1.port }}"
+      home_node: "{{ svm1.node }}"
+      role: data
+      protocols: nfs,cifs
+      admin_status: up
+      failover_policy: local-only
+      firewall_policy: data
+      is_auto_revert: true
+      address: "{{ svm1.address }}"
+      netmask: 255.255.255.0
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: change nfs status
+    na_ontap_nfs:
+      state: present
+      service_state: started
+      nfsv3: enabled
+      nfsv4: disabled
+      nfsv41: disabled
+      tcp: enabled
+      udp: disabled
+      vstorage_state: disabled
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Setup dns for cifs SVM
+    na_ontap_dns:
+      state: present
+      domains: "{{ svm1.domain }}"
+      nameservers: "{{ svm1.nameservers }}"
+      skip_validation: true
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Create cifs server
+    na_ontap_cifs_server:
+      state: present
+      service_state: started
+      cifs_server_name: "{{ svm1.name }}"
+      admin_user_name: "{{ svm1.adminuser }}"
+      admin_password: "{{ svm1.adminpass }}"
+      domain: "{{ svm1.domain }}"
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Setup default rules
+    na_ontap_export_policy_rule:
+      state: present
+      policy_name: default
+      client_match: 0.0.0.0/0
+      ro_rule: sys
+      rw_rule: none
+      super_user_security: none
+      protocol: nfs3,cifs
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Setup nfs export rules
+    na_ontap_export_policy_rule:
+      state: present
+      policy_name: nfs
+      client_match: 0.0.0.0/0
+      ro_rule: sys
+      rw_rule: sys
+      super_user_security: sys
+      protocol: nfs3,cifs
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Create nfs volume
+    na_ontap_volume:
+      state: present
+      name: "{{ svm1.vol }}"
+      policy: nfs
+      aggregate_name: aggr1
+      size:  10
+      size_unit: gb
+      percent_snapshot_space: 0
+      junction_path: "{{ svm1.path }}"
+      volume_security_style: unix
+      wait_for_completion: true
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Create cifs share
+    na_ontap_cifs:
+      state: present
+      share_name: "{{ svm1.share }}"
+      path: "{{ svm1.path }}"
+      share_properties: browsable,oplocks
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Setup cifs share ACLs
+    na_ontap_cifs_acl:
+      state: present
+      share_name: "{{ svm1.share }}"
+      user_or_group: DEMO\domain users
+      permission: full_control
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Remove everyone from share ACLs
+    na_ontap_cifs_acl:
+      state: absent
+      share_name: "{{ svm1.share }}"
+      user_or_group: everyone
+      permission: full_control
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Create unix user
+    na_ontap_unix_user:
+      state: present
+      name: user
+      id: 1000
+      group_id: 1000
+      vserver: "{{ svm1.name }}"
+      <<: *login
+  - name: Name mapping for user to administrator
+    na_ontap_command:
+      command: ['name-mapping', 'create', '-vserver', '"{{ svm1.name }}"', '-direction', 'unix-win', '-position', '1', '-pattern', 'user', '-replacement', 'administrator']
+      <<: *login
+
+  - name: Create cifs SVM
+    na_ontap_svm:
+      state: present
+      name: "{{ svm2.name }}"
+      root_volume: "{{ svm2.name }}_root"
+      root_volume_aggregate: aggr1
+      root_volume_security_style: ntfs
+      allowed_protocols: nfs,cifs
+      <<: *login
+  - name: change nfs status
+    na_ontap_nfs:
+      state: present
+      service_state: started
+      nfsv3: enabled
+      nfsv4: disabled
+      nfsv41: disabled
+      tcp: enabled
+      udp: disabled
+      vstorage_state: disabled
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Create cifs interface
+    na_ontap_interface:
+      state: present
+      interface_name: cifs1
+      home_port: "{{ svm2.port }}"
+      home_node: "{{ svm2.node }}"
+      role: data
+      protocols: cifs,nfs
+      admin_status: up
+      failover_policy: local-only
+      firewall_policy: data
+      is_auto_revert: true
+      address: "{{ svm2.address }}"
+      netmask: 255.255.255.0
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Setup dns for cifs SVM
+    na_ontap_dns:
+      state: present
+      domains: "{{ svm2.domain }}"
+      nameservers: "{{ svm2.nameservers }}"
+      skip_validation: true
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Create cifs server
+    na_ontap_cifs_server:
+      state: present
+      service_state: started
+      cifs_server_name: "{{ svm2.name }}"
+      admin_user_name: "{{ svm2.adminuser }}"
+      admin_password: "{{ svm2.adminpass }}"
+      domain: "{{ svm2.domain }}"
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Setup default rules
+    na_ontap_export_policy_rule:
+      state: present
+      policy_name: default
+      client_match: 0.0.0.0/0
+      ro_rule: sys
+      rw_rule: none
+      super_user_security: none
+      protocol: nfs3,cifs
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Setup cifs export rules
+    na_ontap_export_policy_rule:
+      state: present
+      policy_name: cifs
+      client_match: 0.0.0.0/0
+      ro_rule: sys
+      rw_rule: sys
+      super_user_security: sys
+      protocol: nfs3,cifs
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Create cifs volume
+    na_ontap_volume:
+      state: present
+      name: "{{ svm2.vol }}"
+      policy: cifs
+      aggregate_name: aggr1
+      size:  10
+      size_unit: gb
+      percent_snapshot_space: 0
+      junction_path: "{{ svm2.path }}"
+      volume_security_style: ntfs
+      wait_for_completion: true
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Create cifs share
+    na_ontap_cifs:
+      state: present
+      share_name: "{{ svm2.share }}"
+      path: "{{ svm2.path }}"
+      share_properties: browsable,oplocks
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Setup cifs share ACLs
+    na_ontap_cifs_acl:
+      state: present
+      share_name: "{{ svm2.share }}"
+      user_or_group: DEMO\domain users
+      permission: full_control
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Remove everyone from share ACLs
+    na_ontap_cifs_acl:
+      state: absent
+      share_name: "{{ svm2.share }}"
+      user_or_group: everyone
+      permission: full_control
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Create unix user
+    na_ontap_unix_user:
+      state: present
+      name: user
+      id: 1000
+      group_id: 1000
+      vserver: "{{ svm2.name }}"
+      <<: *login
+  - name: Name mapping for user to administrator
+    na_ontap_command:
+      command: ['name-mapping', 'create', '-vserver', '"{{ svm2.name }}"', '-direction', 'unix-win', '-position', '1', '-pattern', 'user', '-replacement', 'administrator']
+      <<: *login

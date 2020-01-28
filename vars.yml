@@ -1,0 +1,30 @@
+---
+hostname: 192.168.0.101
+username: admin
+password: Netapp1!
+svm1: {
+  name: nfs,
+  vol: nfs,
+  path: /nfs,
+  share: nfs,
+  address: 192.168.0.140,
+  node: cluster1-01,
+  port: e0d,
+  domain: demo.netapp.com,
+  nameservers: 192.168.0.253,
+  adminuser: administrator,
+  adminpass: Netapp1!
+}
+svm2: {
+  name: cifs,
+  vol: cifs,
+  path: /cifs,
+  share: cifs,
+  address: 192.168.0.141,
+  node: cluster1-02,
+  port: e0d,
+  domain: demo.netapp.com,
+  nameservers: 192.168.0.253,
+  adminuser: administrator,
+  adminpass: Netapp1!
+}
