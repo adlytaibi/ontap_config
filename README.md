@@ -11,6 +11,7 @@ Requirements and steps
 - Speedy way to deploy
 
 ```bash
+ssh root@rhel1
 curl -sSL https://raw.githubusercontent.com/adlytaibi/ontap_config/master/build.sh|bash
 ```
 
