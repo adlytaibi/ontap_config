@@ -2,8 +2,8 @@ ontap_config
 ============
 
 This playbook sets up ONTAP two SVMs for multi-protocol access in a minimalist way.
-### One NFS SVM with `unix` security style volume sharing volume to NFS and CIFS clients.
-### One CIFS SVM with `ntfs` security style volume sharing volume to CIFS and NFS clients.
+- One NFS SVM with `unix` security style volume sharing volume to NFS and CIFS clients.
+- One CIFS SVM with `ntfs` security style volume sharing volume to CIFS and NFS clients.
 
 Requirements and steps
 ----------------------
@@ -169,7 +169,7 @@ PLAY RECAP *********************************************************************
 localhost : ok=8    changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 
-# Note: The computer in Active directory needs to be deleted manually.
+### Note: The computer in Active directory needs to be deleted manually.
 
 - Delete the computers from active directory
 
@@ -187,3 +187,14 @@ Performing the operation "Remove" on target "CN=CIFS,CN=Computers,DC=demo,DC=net
 [Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "Y"):
 PS C:\Users\Administrator>
 ```
+
+License
+-------
+
+GPL
+
+Author Information
+------------------
+
+- Adly Taibi
+
