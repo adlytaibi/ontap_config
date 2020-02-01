@@ -123,8 +123,8 @@ localhost : ok=27   changed=26   unreachable=0    failed=0    skipped=0    rescu
 
 ```bash
 mkdir /mnt/{cifs,nfs}
-mount 192.168.0.131:/nfs /mnt/nfs
-mount 192.168.0.132:/cifs /mnt/cifs
+mount -overs=3,sec=sys 192.168.0.131:/nfs /mnt/nfs
+mount -overs=3,sec=sys 192.168.0.132:/cifs /mnt/cifs
 mkdir /mnt/nfs/user;chown user.user /mnt/nfs/user
 date > /mnt/nfs/root.txt
 su - user
@@ -132,6 +132,26 @@ date > /mnt/nfs/user/user.txt
 date > /mnt/cifs/user.txt
 exit
 umount /mnt/*
+```
+
+- Turn on NFSv4 by editing idmapd.conf and service restart `systemctl restart rpcidmapd`
+
+```bash
+egrep -v "^$|^#" /etc/idmapd.conf
+[General]
+Domain = demo.netapp.com
+[Mapping]
+Nobody-User = nobody
+Nobody-Group = nobody
+[Translation]
+Method = nsswitch
+```
+
+- After restarting rpcidmapd, you should be able to mount with NFSv4
+
+```bash
+mount -overs=4.0,sec=sys 192.168.0.131:/nfs /mnt/nfs
+mount -overs=4.0,sec=sys 192.168.0.132:/cifs /mnt/cifs
 ```
 
 - On Windows test access to both volumes

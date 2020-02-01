@@ -48,10 +48,12 @@
       state: present
       service_state: started
       nfsv3: enabled
-      nfsv4: disabled
+      nfsv4: enabled
       nfsv41: disabled
       tcp: enabled
       udp: disabled
+      nfsv40_acl: enabled
+      nfsv4_id_domain: demo.netapp.com
       vstorage_state: disabled
       vserver: "{{ svm1.name }}"
       <<: *login
@@ -80,8 +82,8 @@
       client_match: 0.0.0.0/0
       ro_rule: sys
       rw_rule: none
-      super_user_security: none
-      protocol: nfs3,cifs
+      super_user_security: sys
+      protocol: nfs3,nfs4,cifs
       vserver: "{{ svm1.name }}"
       <<: *login
   - name: Setup nfs export rules
@@ -92,7 +94,7 @@
       ro_rule: sys
       rw_rule: sys
       super_user_security: sys
-      protocol: nfs3,cifs
+      protocol: nfs3,nfs4,cifs
       vserver: "{{ svm1.name }}"
       <<: *login
   - name: Create nfs volume
@@ -145,6 +147,10 @@
     na_ontap_command:
       command: ['name-mapping', 'create', '-vserver', '"{{ svm1.name }}"', '-direction', 'unix-win', '-position', '1', '-pattern', 'user', '-replacement', 'administrator']
       <<: *login
+  - name: Name mapping for root to administrator
+    na_ontap_command:
+      command: ['name-mapping', 'create', '-vserver', '"{{ svm1.name }}"', '-direction', 'unix-win', '-position', '2', '-pattern', 'root', '-replacement', 'demo\\administrator']
+      <<: *login
 
   - name: Create cifs SVM
     na_ontap_svm:
@@ -160,10 +166,12 @@
       state: present
       service_state: started
       nfsv3: enabled
-      nfsv4: disabled
+      nfsv4: enabled
       nfsv41: disabled
       tcp: enabled
       udp: disabled
+      nfsv40_acl: enabled
+      nfsv4_id_domain: demo.netapp.com
       vstorage_state: disabled
       vserver: "{{ svm2.name }}"
       <<: *login
@@ -207,8 +215,8 @@
       client_match: 0.0.0.0/0
       ro_rule: sys
       rw_rule: none
-      super_user_security: none
-      protocol: nfs3,cifs
+      super_user_security: sys
+      protocol: nfs3,nfs4,cifs
       vserver: "{{ svm2.name }}"
       <<: *login
   - name: Setup cifs export rules
@@ -219,7 +227,7 @@
       ro_rule: sys
       rw_rule: sys
       super_user_security: sys
-      protocol: nfs3,cifs
+      protocol: nfs3,nfs4,cifs
       vserver: "{{ svm2.name }}"
       <<: *login
   - name: Create cifs volume
@@ -271,4 +279,8 @@
   - name: Name mapping for user to administrator
     na_ontap_command:
       command: ['name-mapping', 'create', '-vserver', '"{{ svm2.name }}"', '-direction', 'unix-win', '-position', '1', '-pattern', 'user', '-replacement', 'administrator']
+      <<: *login
+  - name: Name mapping for root to administrator
+    na_ontap_command:
+      command: ['name-mapping', 'create', '-vserver', '"{{ svm2.name }}"', '-direction', 'unix-win', '-position', '2', '-pattern', 'root', '-replacement', 'demo\\administrator']
       <<: *login
